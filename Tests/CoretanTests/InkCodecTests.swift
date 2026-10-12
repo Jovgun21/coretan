@@ -51,7 +51,8 @@ final class InkCodecTests: XCTestCase {
     func testNullBackgroundAssetIsDistinctFromEmpty() throws {
         let page = InkCodec.PagePayload(pageID: UUID(), size: .letterPortrait, template: .blank,
                                         backgroundAsset: nil, layers: [], strokes: [], media: [])
-        let out = try XCTUnwrap(InkCodec.decode(InkCodec.encode(pages: [page])).first)
+        let decoded = try XCTUnwrap(InkCodec.decode(InkCodec.encode(pages: [page])))
+        let out = try XCTUnwrap(decoded.first)
         XCTAssertNil(out.backgroundAsset)
     }
 }

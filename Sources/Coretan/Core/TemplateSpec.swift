@@ -15,6 +15,7 @@ struct TemplateSpec: Codable, Equatable {
     var orientationLocked: Bool
 
     static let blankA4 = TemplateSpec(kind: .blank, paperColorHex: "#FFFFFF", lineSpacing: nil, gridSize: nil, orientationLocked: false)
+    static let blank = blankA4
     static let ruled = TemplateSpec(kind: .ruled, paperColorHex: "#FFFEF7", lineSpacing: 24, gridSize: nil, orientationLocked: false)
     static let dotGrid = TemplateSpec(kind: .dotGrid, paperColorHex: "#FFFFFF", lineSpacing: nil, gridSize: 20, orientationLocked: false)
 }
