@@ -247,7 +247,7 @@ struct ZoomablePageView: UIViewRepresentable {
                 mgr.saveStrokes(strokes, pageID: self.pageID, notebookID: self.notebookID,
                                 size: c.pageSize, template: c.template, layers: c.layers)
                 // thumbnail for the page strip
-                if let thumb = c.snapshot()?.jpegData(compressionQuality: 0.6) {
+                if let thumb = c.snapshot().jpegData(compressionQuality: 0.6) {
                     let dir = DocumentStore.shared.bundleURL(for: self.notebookID)
                         .appendingPathComponent("pages", isDirectory: true)
                     try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
