@@ -41,7 +41,7 @@ enum ShapeRecognizer {
         let cv = sqrt(variance) / max(meanR, 1)
 
         let aspect = w / max(h, 0.001)
-        if cv < 0.12 {
+        if cv < 0.10 {
             if aspect > 0.8 && aspect < 1.25 {
                 return Result(kind: .ellipse, a: a, b: b, confidence: 1 - cv)
             }

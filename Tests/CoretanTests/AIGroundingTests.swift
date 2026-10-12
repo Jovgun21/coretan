@@ -42,10 +42,11 @@ final class AIGroundingTests: XCTestCase {
         [{"question":"Apa itu Bayes?","answer":"Teorema posterior","category":"konsep","page":3}]
         ```
         """
-        let cards = AIAssistant.parseCards(raw, notebookID: nil, chunks: chunks())
+        let c = chunks()
+        let cards = AIAssistant.parseCards(raw, notebookID: nil, chunks: c)
         XCTAssertEqual(cards.count, 1)
         XCTAssertEqual(cards.first?.question, "Apa itu Bayes?")
-        XCTAssertEqual(cards.first?.sourcePageID, chunks()[0].pageID, "Card should link back to its source page")
+        XCTAssertEqual(cards.first?.sourcePageID, c[0].pageID, "Card should link back to its source page")
     }
 
     func testFlashcardParserRejectsGarbage() {
