@@ -1,4 +1,5 @@
 import Foundation
+import AVFoundation
 
 /// Reconstructs a page over time: strokes appear in the order they were drawn,
 /// driven either by a playback clock or by scrubbing a timeline.

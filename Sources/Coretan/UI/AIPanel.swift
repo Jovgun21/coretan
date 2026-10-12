@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// AI surface: ask, write, math, study, flashcards, image, usage.
 /// Every action that would modify a note produces a preview the user accepts first.
