@@ -72,11 +72,11 @@ final class InkCanvasView: UIView {
         case .eraser:
             erase(at: p)
         case .lasso:
-            selectionOrigin = p
+            selectionOrigin = p.cg
             selection.removeAll()
             delegate?.canvasDidChangeSelection(self, ids: [])
         case .move:
-            selectionOrigin = p
+            selectionOrigin = p.cg
             transformStart = Dictionary(uniqueKeysWithValues:
                 strokes.filter { selection.contains($0.id) }
                        .map { ($0.id, $0.points.map(\.cg)) })
@@ -101,7 +101,7 @@ final class InkCanvasView: UIView {
         case .lasso:
             lassoUpdate(to: p)
         case .move:
-            moveSelection(by: CGPoint(x: p.x - selectionOrigin.x, y: p.y - selectionOrigin.y))
+            moveSelection(by: CGPoint(x: CGFloat(p.x) - selectionOrigin.x, y: CGFloat(p.y) - selectionOrigin.y))
         }
     }
 

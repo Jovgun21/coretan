@@ -7,6 +7,9 @@ extension Data {
         var le = v.littleEndian
         Swift.withUnsafeBytes(of: &le) { append(contentsOf: $0) }
     }
+    mutating func append(_ f: Float) {
+        append(f.bitPattern.littleEndian)
+    }
     mutating func append(_ v: UUID) {
         var u = v.uuid
         Swift.withUnsafeBytes(of: &u) { append(contentsOf: $0) }
