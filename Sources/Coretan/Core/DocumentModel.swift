@@ -1,6 +1,6 @@
 import Foundation
 
-struct NotebookMeta: Codable, Equatable, Identifiable {
+struct NotebookMeta: Codable, Equatable, Identifiable, Hashable {
     var id: UUID
     var title: String
     var coverAsset: String? // template or custom image name

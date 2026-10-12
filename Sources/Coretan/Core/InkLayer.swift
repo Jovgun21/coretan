@@ -1,6 +1,6 @@
 import Foundation
 
-struct InkLayer: Codable, Equatable {
+struct InkLayer: Codable, Equatable, Identifiable {
     var id: UUID
     var name: String
     var isVisible: Bool

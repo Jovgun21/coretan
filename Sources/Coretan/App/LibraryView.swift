@@ -37,7 +37,7 @@ struct LibraryView: View {
     }
 
     private var title: String {
-        folders.first { $0.id == currentFolder }?.name ?? "Coretan"
+        manager.folders.first { $0.id == currentFolder }?.name ?? "Coretan"
     }
 
     var body: some View {
