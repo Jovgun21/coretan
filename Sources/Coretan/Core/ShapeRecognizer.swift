@@ -106,12 +106,23 @@ enum ShapeRecognizer {
         var simplified: [CGPoint] = []
         var i = 0
         while i < pts.count { simplified.append(pts[i]); i += step }
+
+        let closed = distance(simplified.first!, simplified.last!) < 15
+        if closed && simplified.count > 2 {
+            simplified.removeLast()
+        }
+        let n = simplified.count
+        guard n > 4 else { return 0 }
+
         var corners = 0
         let k = 2
-        for i in k..<(simplified.count - k) {
-            let prev = simplified[i - k], cur = simplified[i], next = simplified[i + k]
-            let v1 = CGPoint(x: cur.x - prev.x, y: cur.y - prev.y)
-            let v2 = CGPoint(x: next.x - cur.x, y: next.y - cur.y)
+        for i in 0..<n {
+            let prev = closed ? simplified[(i - k + n) % n] : (i >= k ? simplified[i - k] : nil)
+            let cur = simplified[i]
+            let next = closed ? simplified[(i + k) % n] : (i + k < n ? simplified[i + k] : nil)
+            guard let p = prev, let nx = next else { continue }
+            let v1 = CGPoint(x: cur.x - p.x, y: cur.y - p.y)
+            let v2 = CGPoint(x: nx.x - cur.x, y: nx.y - cur.y)
             let n1 = hypot(v1.x, v1.y), n2 = hypot(v2.x, v2.y)
             guard n1 > 0, n2 > 0 else { continue }
             let cosT = (v1.x * v2.x + v1.y * v2.y) / (n1 * n2)
