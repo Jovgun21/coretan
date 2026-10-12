@@ -1,0 +1,21 @@
+## Build
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+Coretan.xcodeproj/
+
+## macOS
+.DS_Store
+
+## Secrets — never commit
+*.p12
+*.mobileprovision
+*.cer
+.env
+.env.*
+
+## Local exports
+*.ipa
+*.xcarchive
+*.sha256

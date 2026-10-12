@@ -1,0 +1,90 @@
+name: iOS build
+
+# The .ipa is produced here: a macOS runner is the only place Xcode exists.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      build_ipa:
+        description: "Produce an unsigned .ipa artifact"
+        type: boolean
+        default: true
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate --spec project.yml
+
+      - name: Build for testing (simulator)
+        run: |
+          set -o pipefail
+          xcodebuild build-for-testing \
+            -project Coretan.xcodeproj \
+            -scheme Coretan \
+            -destination 'platform=iOS Simulator,name=iPad (10th generation),OS=latest' \
+            CODE_SIGNING_ALLOWED=NO | xcpretty || xcodebuild build-for-testing \
+            -project Coretan.xcodeproj \
+            -scheme Coretan \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Run unit tests
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project Coretan.xcodeproj \
+            -scheme Coretan \
+            -destination 'platform=iOS Simulator,name=iPad (10th generation),OS=latest' \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Archive (device build)
+        if: ${{ inputs.build_ipa == true || github.event_name == 'push' }}
+        run: |
+          xcodebuild archive \
+            -project Coretan.xcodeproj \
+            -scheme Coretan \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/Coretan.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Package unsigned .ipa
+        if: ${{ inputs.build_ipa == true || github.event_name == 'push' }}
+        run: |
+          mkdir -p build/Payload
+          cp -R build/Coretan.xcarchive/Products/Applications/Coretan.app build/Payload/
+          cd build && zip -qry Coretan-unsigned.ipa Payload
+          shasum -a 256 Coretan-unsigned.ipa > Coretan-unsigned.ipa.sha256
+
+      - name: Upload .ipa
+        if: ${{ inputs.build_ipa == true || github.event_name == 'push' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Coretan-unsigned-ipa
+          path: |
+            build/Coretan-unsigned.ipa
+            build/Coretan-unsigned.ipa.sha256
+          retention-days: 14
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: build/**/*.xcresult
+          if-no-files-found: ignore

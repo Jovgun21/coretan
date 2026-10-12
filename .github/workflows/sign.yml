@@ -1,0 +1,62 @@
+name: Signed IPA
+
+# Optional path: builds a restore-signed .ipa you can install with Apple
+# Configurator or Sideloadly. Requires repository secrets:
+#   BUILD_CERTIFICATE_BASE64  (your .p12, base64)
+#   P12_PASSWORD
+#   PROVISIONING_PROFILE_BASE64
+#   KEYCHAIN_PASSWORD
+on:
+  workflow_dispatch:
+
+jobs:
+  sign:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install xcodegen
+      - run: xcodegen generate --spec project.yml
+
+      - name: Import certificate
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          CERT_PATH=$RUNNER_TEMP/cert.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERT_PATH
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security import $CERT_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+      - name: Install provisioning profile
+        env:
+          PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          PP_PATH=$RUNNER_TEMP/profile.mobileprovision
+          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+
+      - name: Build signed .ipa
+        run: |
+          xcodebuild archive \
+            -project Coretan.xcodeproj \
+            -scheme Coretan \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/Coretan.xcarchive \
+            -allowProvisioningUpdates
+          mkdir -p build/Payload
+          cp -R build/Coretan.xcarchive/Products/Applications/Coretan.app build/Payload/
+          cd build && zip -qry Coretan-signed.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Coretan-signed-ipa
+          path: build/Coretan-signed.ipa
